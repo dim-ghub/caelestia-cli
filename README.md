@@ -28,6 +28,13 @@ A package following the latest commit also exists as `caelestia-cli-git`. This i
 and likely to be unstable/have bugs. Regular users are recommended to use the stable package
 (`caelestia-cli`).
 
+Alternatively, this fork's CLI can be installed and managed via [`pkgmgr`](https://github.com/dim-ghub/pkgmgr)'s
+`gh` plugin:
+
+```sh
+pkg install gh/dim-ghub/caelestia-cli-git
+```
+
 ### Nix
 
 You can run the CLI directly via `nix run`:
