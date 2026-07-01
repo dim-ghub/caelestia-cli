@@ -28,12 +28,14 @@ A package following the latest commit also exists as `caelestia-cli-git`. This i
 and likely to be unstable/have bugs. Regular users are recommended to use the stable package
 (`caelestia-cli`).
 
-Alternatively, this fork's CLI can be installed and managed via [`pkgmgr`](https://github.com/dim-ghub/pkgmgr)'s
-`gh` plugin:
+To install this fork's CLI, you can use the `pkgit` package manager (available on the AUR as `pkgit-git`):
 
 ```sh
-pkg install gh/dim-ghub/caelestia-cli-git
+pkgit -i https://github.com/dim-ghub/caelestia-cli
 ```
+
+> [!TIP]
+> You can also use `pkgit -qi https://github.com/dim-ghub/caelestia-cli` for a quiet installation.
 
 ### Nix
 
