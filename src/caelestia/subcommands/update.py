@@ -72,9 +72,9 @@ class Command:
         print()
         log("Updating Caelestia Shell via pkgit...")
         import subprocess
-        cmd = ["pkgit", "-i", "https://github.com/dim-ghub/caelestia-shell"]
+        cmd = ["pkgit", "-fi", "https://github.com/dim-ghub/caelestia-shell"]
         if self.args.noconfirm:
-            cmd = ["pkgit", "-qi", "https://github.com/dim-ghub/caelestia-shell"]
+            cmd = ["pkgit", "-qfi", "https://github.com/dim-ghub/caelestia-shell"]
         try:
             subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
