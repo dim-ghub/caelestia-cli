@@ -26,10 +26,20 @@ from caelestia.utils.theme import apply_colours
 
 
 def is_valid_image(path: Path) -> bool:
-    return path.is_file() and path.suffix in [".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".gif"]
+    return path.is_file() and path.suffix.lower() in [
+        ".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".gif",
+        ".mp4", ".mkv", ".avi", ".webm",
+    ]
+
+
+def is_video(path: Path) -> bool:
+    return path.is_file() and path.suffix.lower() in [".mp4", ".mkv", ".avi", ".webm"]
 
 
 def check_wall(wall: Path, filter_size: tuple[int, int], threshold: float) -> bool:
+    if is_video(wall):
+        return True
+
     with Image.open(wall) as img:
         width, height = img.size
         return width >= filter_size[0] * threshold and height >= filter_size[1] * threshold
@@ -105,6 +115,8 @@ def get_colours_for_wall(wall: Path | str, no_smart: bool) -> None:
 
     if wall.suffix.lower() == ".gif":
         wall = convert_gif(wall)
+    elif is_video(wall):
+        wall = convert_video(wall)
 
     name = "dynamic"
 
@@ -147,15 +159,36 @@ def convert_gif(wall: Path) -> Path:
     return output_path
 
 
+def convert_video(wall: Path) -> Path:
+    cache = wallpapers_cache_dir / compute_hash(wall)
+    output_path = cache / "first_frame.png"
+
+    if not output_path.exists():
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["ffmpeg", "-i", str(wall), "-vframes", "1", "-q:v", "2", str(output_path)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+
+    return output_path
+
+
 def set_wallpaper(wall: Path, no_smart: bool) -> None:
     # Make path absolute
     wall = Path(wall).resolve()
 
     if not is_valid_image(wall):
-        raise ValueError(f'"{wall}" is not a valid image')
+        raise ValueError(f'"{wall}" is not a valid image or video')
 
-    # Use gif's 1st frame for thumb only
-    wall_cache = convert_gif(wall) if wall.suffix.lower() == ".gif" else wall
+    # Use gif/video's 1st frame for thumb only
+    if wall.suffix.lower() == ".gif":
+        wall_cache = convert_gif(wall)
+    elif is_video(wall):
+        wall_cache = convert_video(wall)
+    else:
+        wall_cache = wall
 
     # Update files
     wallpaper_path_path.parent.mkdir(parents=True, exist_ok=True)
