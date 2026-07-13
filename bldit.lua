@@ -8,7 +8,9 @@ targets = {
     default = {
         pre_build = function()
             if os.execute("command -v pacman >/dev/null 2>&1") == 0 then
-                os.execute("sudo pacman -Rdd --noconfirm caelestia-cli caelestia-cli-git >/dev/null 2>&1")
+                if os.execute("pacman -Qq caelestia-cli >/dev/null 2>&1") == 0 or os.execute("pacman -Qq caelestia-cli-git >/dev/null 2>&1") == 0 then
+                    os.execute("sudo pacman -Rdd --noconfirm caelestia-cli caelestia-cli-git >/dev/null 2>&1")
+                end
             end
             return 0
         end,
@@ -18,23 +20,25 @@ targets = {
             return 0
         end,
         install = function()
-            os.execute("sudo python -m installer --overwrite-existing dist/*.whl")
-            os.execute("sudo mkdir -p /usr/share/fish/vendor_completions.d")
-            os.execute("sudo cp completions/caelestia.fish /usr/share/fish/vendor_completions.d/caelestia.fish")
+            local pfx = prefix or "/usr/local"
+            os.execute("python -m installer --overwrite-existing --prefix " .. pfx .. " dist/*.whl")
+            os.execute("mkdir -p " .. pfx .. "/share/fish/vendor_completions.d")
+            os.execute("cp completions/caelestia.fish " .. pfx .. "/share/fish/vendor_completions.d/caelestia.fish")
             return 0
         end,
         uninstall = function()
-            os.execute("sudo rm -f /usr/local/bin/caelestia /usr/bin/caelestia")
-            os.execute("sudo rm -f /usr/share/fish/vendor_completions.d/caelestia.fish")
-            -- We just delete the binary and completion. Removing the python package completely 
-            -- via installer is tricky, but usually binary deletion is enough.
+            local pfx = prefix or "/usr/local"
+            os.execute("rm -f " .. pfx .. "/bin/caelestia")
+            os.execute("rm -f " .. pfx .. "/share/fish/vendor_completions.d/caelestia.fish")
             return 0
         end
     },
     quiet = {
         pre_build = function()
             if os.execute("command -v pacman >/dev/null 2>&1") == 0 then
-                os.execute("sudo pacman -Rdd --noconfirm caelestia-cli caelestia-cli-git >/dev/null 2>&1")
+                if os.execute("pacman -Qq caelestia-cli >/dev/null 2>&1") == 0 or os.execute("pacman -Qq caelestia-cli-git >/dev/null 2>&1") == 0 then
+                    os.execute("sudo pacman -Rdd --noconfirm caelestia-cli caelestia-cli-git >/dev/null 2>&1")
+                end
             end
             return 0
         end,
@@ -44,14 +48,16 @@ targets = {
             return 0
         end,
         install = function()
-            os.execute("sudo python -m installer --overwrite-existing dist/*.whl >/dev/null 2>&1")
-            os.execute("sudo mkdir -p /usr/share/fish/vendor_completions.d")
-            os.execute("sudo cp completions/caelestia.fish /usr/share/fish/vendor_completions.d/caelestia.fish >/dev/null 2>&1")
+            local pfx = prefix or "/usr/local"
+            os.execute("python -m installer --overwrite-existing --prefix " .. pfx .. " dist/*.whl >/dev/null 2>&1")
+            os.execute("mkdir -p " .. pfx .. "/share/fish/vendor_completions.d")
+            os.execute("cp completions/caelestia.fish " .. pfx .. "/share/fish/vendor_completions.d/caelestia.fish >/dev/null 2>&1")
             return 0
         end,
         uninstall = function()
-            os.execute("sudo rm -f /usr/local/bin/caelestia /usr/bin/caelestia >/dev/null 2>&1")
-            os.execute("sudo rm -f /usr/share/fish/vendor_completions.d/caelestia.fish >/dev/null 2>&1")
+            local pfx = prefix or "/usr/local"
+            os.execute("rm -f " .. pfx .. "/bin/caelestia >/dev/null 2>&1")
+            os.execute("rm -f " .. pfx .. "/share/fish/vendor_completions.d/caelestia.fish >/dev/null 2>&1")
             return 0
         end
     }
