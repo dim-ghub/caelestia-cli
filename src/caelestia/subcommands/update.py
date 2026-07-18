@@ -46,8 +46,6 @@ def _update_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> No
 
     if shutil.which("pkgit") is None:
         info("pkgit not found - shell will update from system paths")
-        info("To enable pkgit package management, install pkgit-git from AUR:")
-        info("  yay -S pkgit-git")
         return
 
     cmd = ["pkgit", "-qfi" if noconfirm else "-fi", "https://github.com/dim-ghub/caelestia-shell"]
