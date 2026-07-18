@@ -106,9 +106,7 @@ def _install_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> N
     # Check if pkgit is available
     if shutil.which("pkgit") is None:
         info("pkgit not found - shell will load from system paths directly")
-        info("To enable pkgit package management, install pkgit-git from AUR:")
-        info("  yay -S pkgit-git")
-        info("Or, if shell was installed separately (AUR/manual), create marker:")
+        info("if shell was installed separately (AUR/manual), create marker:")
         info("  mkdir -p ~/.local/state/caelestia && touch ~/.local/state/caelestia/shell-managed")
         return
 
