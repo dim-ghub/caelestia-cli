@@ -13,15 +13,15 @@ class Command:
         self.args = args
 
     def run(self) -> None:
-        if self.args.picker:
+        if getattr(self.args, "print", False):
+            print((cli_data_dir / "emojis.txt").read_text(), end="")
+        elif self.args.fetch:
+            self.fetch_emojis()
+        else:
             subprocess.Popen(
                 ["qs", "-c", "caelestia", "ipc", "call", "launcher", "openEmoji"],
                 start_new_session=True,
             )
-        elif self.args.fetch:
-            self.fetch_emojis()
-        else:
-            print((cli_data_dir / "emojis.txt").read_text(), end="")
 
     def fetch_emojis(self) -> None:
         data = [
