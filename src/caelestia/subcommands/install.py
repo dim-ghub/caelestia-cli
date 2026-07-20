@@ -50,24 +50,15 @@ def _install_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> N
     """Install Caelestia Shell via pkgit, with fallback support for external package managers.
 
     This function handles shell installation with the following priority:
-    1. If shell is managed by AUR package or manual-install marker → skip (externally managed)
-    2. If pkgit is available → use pkgit to install
-    3. If pkgit is not available → skip (shell will load from system paths)
-
-    This allows installation paths:
-    - AUR users: shell managed by pacman, CLI manages only dotfiles
-    - Manual install: users set ~/.local/state/caelestia/shell-managed marker
-    - pkgit users: CLI manages shell via pkgit
-    - Minimal install: neither pkgit nor AUR, shell loads from system paths
-
-    Args:
-        installer: PackageInstaller instance
-        noconfirm: If True, uses quiet flags (-qi instead of -i)
+    1. If CLI was installed via AUR (primary)
+    2. If shell is managed by pacman (AUR)
+    3. Manual-install marker
+    4. Otherwise attempt pkgit if present; else skip.
     """
     print()
     log("Installing Caelestia Shell...")
 
-    # Check if shell is already managed by external package manager
+    # If the CLI or shell is externally managed, skip pkgit
     if shell_managed_externally(installer):
         info("Shell is managed by AUR package or manual install - skipping pkgit")
         info("The shell will load from system paths as configured by the package manager")
