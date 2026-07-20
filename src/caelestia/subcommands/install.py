@@ -22,8 +22,7 @@ from caelestia.utils.paths import (
     config_backup_dir,
     config_dir,
 )
-from caelestia.utils.shell import shell_managed_externally
-
+from caelestia.utils.shell import detect_shell_management_source, shell_package_matching_cli
 
 def _parse_list_arg(value: str | None) -> list[str] | None:
     if value is None:
