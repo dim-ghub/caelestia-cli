@@ -9,8 +9,8 @@ CLI_PKG_NAMES = ("dim-caelestia-cli-git",)
 SHELL_PKG_NAMES = ("dim-caelestia-shell-git",)
 
 
-def shell_managed_externally(installer: PackageInstaller) -> bool:
-    """Decide whether pkgit should skip managing the shell.
+def should_skip_pkgit_for_shell(installer: PackageInstaller) -> bool:
+    """Decide whether the installer should skip managing the shell with pkgit.
 
     Checked in priority order:
     1. How the CLI itself was installed. The advised flow is "install the
