@@ -103,7 +103,7 @@ def parse_args() -> tuple[argparse.ArgumentParser, argparse.Namespace]:
     # Create parser for emoji-picker opts
     emoji_parser = command_parser.add_parser("emoji", help="emoji/glyph utilities")
     emoji_parser.set_defaults(cls=emoji.Command)
-    emoji_parser.add_argument("-p", "--picker", action="store_true", help="open the emoji/glyph picker")
+    emoji_parser.add_argument("-p", "--print", action="store_true", help="print the emoji/glyph list")
     emoji_parser.add_argument("-f", "--fetch", action="store_true", help="fetch emoji/glyph data from remote")
 
     # Create parser for wallpaper opts

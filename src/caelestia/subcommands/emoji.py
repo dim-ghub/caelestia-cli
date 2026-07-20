@@ -13,16 +13,15 @@ class Command:
         self.args = args
 
     def run(self) -> None:
-        if self.args.picker:
-            emojis = (cli_data_dir / "emojis.txt").read_text()
-            chosen = subprocess.check_output(
-                ["fuzzel", "--dmenu", "--placeholder=Type to search emojis"], input=emojis, text=True
-            )
-            subprocess.run(["wl-copy"], input=chosen.split()[0], text=True)
+        if getattr(self.args, "print", False):
+            print((cli_data_dir / "emojis.txt").read_text(), end="")
         elif self.args.fetch:
             self.fetch_emojis()
         else:
-            print((cli_data_dir / "emojis.txt").read_text(), end="")
+            subprocess.Popen(
+                ["qs", "-c", "caelestia", "ipc", "call", "launcher", "openEmoji"],
+                start_new_session=True,
+            )
 
     def fetch_emojis(self) -> None:
         data = [
