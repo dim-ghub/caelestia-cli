@@ -2,38 +2,27 @@ from pathlib import Path
 
 from caelestia.utils.dots.packages import PackageInstaller
 
-# Known AUR package names for the CLI itself
-CLI_PKG_NAMES = ("dim-caelestia-cli-git",)
-
-# Known AUR package names for the Caelestia shell
-SHELL_PKG_NAMES = ("dim-caelestia-shell-git",)
+# AUR package names — git and stable variants
+CLI_PKG_NAMES = ("dim-caelestia-cli-git", "dim-caelestia-cli")
+SHELL_PKG_NAMES = ("dim-caelestia-shell-git", "dim-caelestia-shell")
 
 
 def detect_shell_management_source(installer: PackageInstaller) -> str | None:
-    """Detect where the shell is (or should be) managed from.
+    """Work out how the shell should be managed.
 
-    Returns:
-      - "shell" if the shell package is installed (pacman/AUR)
-      - "cli" if the CLI package is installed (suggesting AUR-managed intent)
-      - "manual" if a manual-install marker exists (~/.local/state/caelestia/shell-managed)
-      - None if no sign of external management was found
-
-    Priority is intentionally:
-      1) shell package present
-      2) CLI package present
-      3) manual marker
-    so that a fresh install (where the shell package is not yet present) can
-    still infer the user's intent from how the CLI was installed.
+    Priority follows the advised "install CLI, then run `caelestia install`" flow:
+    1. "shell"  - shell AUR package already installed directly.
+    2. "cli"    - shell isn't installed yet, but the CLI was installed via AUR;
+                  install the shell from the same source.
+    3. "manual" - manual-install marker present.
+    4. None     - nothing detected; fall back to pkgit.
     """
-    # 1) shell package present
     if any(installer.is_installed(name) for name in SHELL_PKG_NAMES):
         return "shell"
 
-    # 2) CLI package present (installer itself comes from the CLI package)
     if any(installer.is_installed(name) for name in CLI_PKG_NAMES):
         return "cli"
 
-    # 3) manual marker
     marker = Path.home() / ".local" / "state" / "caelestia" / "shell-managed"
     if marker.exists():
         return "manual"
@@ -41,14 +30,8 @@ def detect_shell_management_source(installer: PackageInstaller) -> str | None:
     return None
 
 
-def should_skip_pkgit_for_shell(installer: PackageInstaller) -> bool:
-    """Return True if pkgit should definitely be skipped for managing the shell.
-
-    This is a convenience for callers that only need to know whether they
-    should avoid invoking pkgit. Note that "cli" intent does NOT imply
-    skipping pkgit; it implies the installer should prefer the system
-    package manager to install the shell. Only an existing shell package or
-    a manual marker should cause pkgit to be skipped outright.
-    """
-    src = detect_shell_management_source(installer)
-    return src in ("shell", "manual")
+def shell_package_matching_cli(installer: PackageInstaller) -> str:
+    """Pick the shell package variant matching whichever CLI variant is installed."""
+    if installer.is_installed(CLI_PKG_NAMES[0]):  # -git
+        return SHELL_PKG_NAMES[0]
+    return SHELL_PKG_NAMES[1]  # stable
