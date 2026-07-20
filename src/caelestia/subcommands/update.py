@@ -1,3 +1,5 @@
+import shutil
+import subprocess
 import sys
 from argparse import Namespace
 from pathlib import Path
@@ -10,6 +12,8 @@ from caelestia.utils.dots.packages import PackageError, PackageInstaller
 from caelestia.utils.dots.source import DotsSource, SourceError
 from caelestia.utils.dots.state import DotsState
 from caelestia.utils.io import disable_input, fatal, info, log, prompt_selection, warn
+
+from caelestia.utils.shell import shell_managed_externally
 
 
 class Command:
@@ -69,16 +73,8 @@ class Command:
         # Run hooks
         run_hooks(manifest, "post_update")
 
-        print()
-        log("Updating Caelestia Shell via pkgit...")
-        import subprocess
-        cmd = ["pkgit", "-fi", "https://github.com/dim-ghub/caelestia-shell"]
-        if self.args.noconfirm:
-            cmd = ["pkgit", "-qfi", "https://github.com/dim-ghub/caelestia-shell"]
-        try:
-            subprocess.run(cmd, check=True)
-        except subprocess.CalledProcessError as e:
-            warn(f"Failed to update Caelestia Shell: {e}")
+        # Update shell with optional pkgit support
+        _update_shell_with_pkgit(installer, self.args.noconfirm)
 
         # Mark the new revision applied
         state.applied_rev = tip
@@ -269,3 +265,28 @@ class Command:
             info("These files are no longer managed but differ from what was installed, so were kept:")
             for path in changeset.stale:
                 info(f"  {path}")
+
+
+def _update_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> None:
+    """Update Caelestia Shell via pkgit, skipping if managed externally or pkgit is absent."""
+    print()
+    log("Updating Caelestia Shell...")
+
+    if shell_managed_externally(installer):
+        info("Shell is managed by AUR package or manual install - skipping pkgit")
+        info("The shell will load from system paths as configured by the package manager")
+        return
+
+    if shutil.which("pkgit") is None:
+        info("pkgit not found - shell will update from system paths")
+        info("To enable pkgit package management, install pkgit-git from AUR:")
+        info("  yay -S pkgit-git")
+        return
+
+    cmd = ["pkgit", "-qfi" if noconfirm else "-fi", "https://github.com/dim-ghub/caelestia-shell"]
+    try:
+        subprocess.run(cmd, check=True)
+        info("Caelestia Shell updated successfully via pkgit")
+    except subprocess.CalledProcessError as e:
+        warn(f"Failed to update Caelestia Shell via pkgit: {e}")
+        info("The shell will still function from system paths")
