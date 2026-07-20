@@ -9,27 +9,46 @@ CLI_PKG_NAMES = ("dim-caelestia-cli-git",)
 SHELL_PKG_NAMES = ("dim-caelestia-shell-git",)
 
 
-def should_skip_pkgit_for_shell(installer: PackageInstaller) -> bool:
-    """Decide whether the installer should skip managing the shell with pkgit.
+def detect_shell_management_source(installer: PackageInstaller) -> str | None:
+    """Detect where the shell is (or should be) managed from.
 
-    Checked in priority order:
-    1. How the CLI itself was installed. The advised flow is "install the
-       CLI, then run `caelestia install`" -- on a fresh install the shell
-       package doesn't exist yet, so shell-based detection alone can't see
-       intent on a first run. The CLI is guaranteed to already be installed
-       by the time this runs, so its origin is the reliable signal.
-    2. Whether the shell package is already installed directly -- covers
-       setups where the shell was installed separately from the CLI.
-    3. A manual-install marker for users who built the shell by hand.
+    Returns:
+      - "shell" if the shell package is installed (pacman/AUR)
+      - "cli" if the CLI package is installed (suggesting AUR-managed intent)
+      - "manual" if a manual-install marker exists (~/.local/state/caelestia/shell-managed)
+      - None if no sign of external management was found
+
+    Priority is intentionally:
+      1) shell package present
+      2) CLI package present
+      3) manual marker
+    so that a fresh install (where the shell package is not yet present) can
+    still infer the user's intent from how the CLI was installed.
     """
-    # Primary: CLI package presence
-    if any(installer.is_installed(name) for name in CLI_PKG_NAMES):
-        return True
-
-    # Secondary: shell package presence
+    # 1) shell package present
     if any(installer.is_installed(name) for name in SHELL_PKG_NAMES):
-        return True
+        return "shell"
 
-    # Fallback: manual-install marker
+    # 2) CLI package present (installer itself comes from the CLI package)
+    if any(installer.is_installed(name) for name in CLI_PKG_NAMES):
+        return "cli"
+
+    # 3) manual marker
     marker = Path.home() / ".local" / "state" / "caelestia" / "shell-managed"
-    return marker.exists()
+    if marker.exists():
+        return "manual"
+
+    return None
+
+
+def should_skip_pkgit_for_shell(installer: PackageInstaller) -> bool:
+    """Return True if pkgit should definitely be skipped for managing the shell.
+
+    This is a convenience for callers that only need to know whether they
+    should avoid invoking pkgit. Note that "cli" intent does NOT imply
+    skipping pkgit; it implies the installer should prefer the system
+    package manager to install the shell. Only an existing shell package or
+    a manual marker should cause pkgit to be skipped outright.
+    """
+    src = detect_shell_management_source(installer)
+    return src in ("shell", "manual")
