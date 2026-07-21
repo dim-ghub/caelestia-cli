@@ -47,32 +47,36 @@ def _deref_symlink(link: Path, target: Path) -> None:
 
 def _install_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> None:
     """Install Caelestia Shell via pkgit, with fallback support for external package managers.
-
-    This function handles shell installation with the following priority:
-    1. If CLI was installed via AUR (primary)
-    2. If shell is managed by pacman (AUR)
-    3. Manual-install marker
-    4. Otherwise attempt pkgit if present; else skip.
-    """
     print()
     log("Installing Caelestia Shell...")
 
-    # If the CLI or shell is externally managed, skip pkgit
-    if shell_managed_externally(installer):
-        info("Shell is managed by AUR package or manual install - skipping pkgit")
-        info("The shell will load from system paths as configured by the package manager")
+    src = detect_shell_management_source(installer)
+
+    if src == "shell":
+        info("Shell package already installed - nothing to do")
         return
 
-    # Check if pkgit is available
+    if src == "manual":
+        info("Manual shell marker present - skipping pkgit")
+        return
+
+    if src == "cli":
+        pkg = shell_package_matching_cli(installer)
+        try:
+            info(f"CLI was installed via AUR - installing shell via the same source ({pkg})...")
+            installer.install([pkg])
+            info(f"Caelestia Shell installed via {pkg}")
+            return
+        except PackageError as e:
+            warn(f"Failed to install {pkg} via the system package manager: {e}")
+            info("Falling back to pkgit")
+
     if shutil.which("pkgit") is None:
         info("pkgit not found - shell will load from system paths directly")
         info("To enable pkgit package management, install pkgit-git from AUR:")
         info("  yay -S pkgit-git")
-        info("Or, if shell was installed separately (AUR/manual), create marker:")
-        info("  mkdir -p ~/.local/state/caelestia && touch ~/.local/state/caelestia/shell-managed")
         return
 
-    # Install via pkgit
     cmd = ["pkgit", "-qi" if noconfirm else "-i", "https://github.com/dim-ghub/caelestia-shell"]
     try:
         subprocess.run(cmd, check=True)

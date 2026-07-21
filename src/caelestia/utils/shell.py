@@ -2,7 +2,7 @@ from pathlib import Path
 
 from caelestia.utils.dots.packages import PackageInstaller
 
-# AUR package names — git and stable variants
+# AUR package names -- git and stable variants
 CLI_PKG_NAMES = ("dim-caelestia-cli-git", "dim-caelestia-cli")
 SHELL_PKG_NAMES = ("dim-caelestia-shell-git", "dim-caelestia-shell")
 
