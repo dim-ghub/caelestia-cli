@@ -3,8 +3,8 @@ from pathlib import Path
 from caelestia.utils.dots.packages import PackageInstaller
 
 # AUR package names
-CLI_PKG_NAMES = ("dim-caelestia-cli-git")
-SHELL_PKG_NAMES = ("dim-caelestia-shell-git")
+CLI_PKG_NAMES = ("dim-caelestia-cli-git",)
+SHELL_PKG_NAMES = ("dim-caelestia-shell-git",)
 
 
 def detect_shell_management_source(installer: PackageInstaller) -> str | None:
