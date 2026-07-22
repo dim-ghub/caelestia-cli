@@ -46,7 +46,7 @@ def _deref_symlink(link: Path, target: Path) -> None:
 
 
 def _install_shell_with_pkgit(installer: PackageInstaller, noconfirm: bool) -> None:
-    """Install Caelestia Shell via pkgit, with fallback support for external package managers.
+    """Install Caelestia Shell via pkgit, with fallback support for external package managers."""
 
     This function handles shell installation with the following priority:
     1. If CLI was installed via AUR (primary)
